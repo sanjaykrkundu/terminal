@@ -1,11 +1,9 @@
 {
     "$help": "https://aka.ms/terminal-documentation",
     "$schema": "https://aka.ms/terminal-profiles-schema",
-    "actions": 
-    [
+    "actions": [
         {
-            "command": 
-            {
+            "command": {
                 "action": "copy",
                 "singleLine": false
             },
@@ -16,8 +14,7 @@
             "id": "User.paste"
         },
         {
-            "command": 
-            {
+            "command": {
                 "action": "newTab"
             },
             "id": "User.newTab.5DEADB41"
@@ -27,8 +24,11 @@
             "id": "User.selectAll"
         },
         {
-            "command": 
-            {
+            "command": "find",
+            "id": "User.find"
+        },
+        {
+            "command": {
                 "action": "splitPane",
                 "split": "auto",
                 "splitMode": "duplicate"
@@ -36,66 +36,108 @@
             "id": "User.splitPane.A6751878"
         },
         {
-            "command": "find",
-            "id": "User.find"
-        },
-        {
-            "command": 
-            {
-                "action": "splitPane",
-                "split": "right"
-            },
-            "id": "User.splitPane.864CD510"
-        },
-        {
-            "command": 
-            {
+            "command": {
                 "action": "closeTab"
             },
             "id": "User.closeTab.0"
         },
         {
+            "command": {
+                "action": "splitPane",
+                "profile": "auto",
+                "split": "right"
+            },
+            "id": "User.splitPane.864CD510"
+        },
+        {
             "command": "closePane",
             "id": "User.closePane"
+        },
+        {
+            "command": {
+                "action": "resizePane",
+                "direction": "down"
+            },
+            "id": "Terminal.ResizePaneDown"
+        },
+        {
+            "command": {
+                "action": "resizePane",
+                "direction": "up"
+            },
+            "id": "Terminal.ResizePaneUp"
+        },
+        {
+            "command": {
+                "action": "resizePane",
+                "direction": "right"
+            },
+            "id": "Terminal.ResizePaneRight"
+        },
+        {
+            "command": {
+                "action": "resizePane",
+                "direction": "left"
+            },
+            "id": "Terminal.ResizePaneLeft"
+        },
+        {
+            "command": "commandPalette",
+            "id": "commandPalette"
         }
     ],
     "alwaysOnTop": false,
     "copyFormatting": "none",
     "copyOnSelect": true,
     "defaultProfile": "{395a5cd8-f74b-4e0a-8c96-310025135c12}",
-    "keybindings": 
-    [
+    "keybindings": [
         {
-            "id": "User.newTab.5DEADB41",
-            "keys": "ctrl+t"
+            "id": "commandPalette",
+            "keys": "ctrl+shift+p"
+        },
+        {
+            "id": "Terminal.ResizePaneDown",
+            "keys": "alt+shift+down"
+        },
+        {
+            "id": "User.splitPane.A6751878",
+            "keys": "ctrl+shift+d"
         },
         {
             "id": "User.copy.644BA8F2",
             "keys": "ctrl+c"
         },
         {
-            "id": "User.find",
-            "keys": "ctrl+f"
+            "id": "User.newTab.5DEADB41",
+            "keys": "ctrl+t"
+        },
+        {
+            "id": "Terminal.ResizePaneLeft",
+            "keys": "alt+shift+left"
         },
         {
             "id": "User.paste",
             "keys": "ctrl+v"
         },
         {
+            "id": "Terminal.ResizePaneUp",
+            "keys": "alt+shift+up"
+        },
+        {
+            "id": "Terminal.ResizePaneRight",
+            "keys": "alt+shift+right"
+        },
+        {
+            "id": "User.find",
+            "keys": "ctrl+f"
+        },
+        {
             "id": "User.selectAll",
             "keys": "ctrl+a"
         },
         {
-            "id": "User.splitPane.A6751878",
-            "keys": "alt+shift+d"
-        },
-        {
             "id": "User.closeTab.0",
             "keys": "ctrl+w"
-        },
-        {
-            "id": null,
-            "keys": "alt+shift+plus"
         },
         {
             "id": "User.splitPane.864CD510",
@@ -106,21 +148,17 @@
             "keys": "ctrl+shift+w"
         }
     ],
-    "newTabMenu": 
-    [
+    "newTabMenu": [
         {
             "type": "remainingProfiles"
         }
     ],
-    "profiles": 
-    {
-        "defaults": 
-        {
+    "profiles": {
+        "defaults": {
             "colorScheme": "Catppuccin Mocha",
             "cursorShape": "filledBox",
             "experimental.retroTerminalEffect": false,
-            "font": 
-            {
+            "font": {
                 "builtinGlyphs": true,
                 "cellHeight": "1.4",
                 "colorGlyphs": true,
@@ -133,8 +171,7 @@
             "suppressApplicationTitle": false,
             "useAcrylic": true
         },
-        "list": 
-        [
+        "list": [
             {
                 "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
@@ -156,20 +193,22 @@
             {
                 "colorScheme": "Ubuntu-24.04-ColorScheme",
                 "commandline": "\"C:\\Users\\sanja\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.PowerShell_8wekyb3d8bbwe\\pwsh.exe\"",
-                "font": 
-                {
+                "experimental.rainbowSuggestions": false,
+                "font": {
                     "face": "JetBrainsMono Nerd Font"
                 },
                 "guid": "{395a5cd8-f74b-4e0a-8c96-310025135c12}",
                 "hidden": false,
+                "historySize": 9021,
                 "icon": "ms-appx:///ProfileIcons/pwsh.png",
                 "name": "PowerShell 7",
+                "rightClickContextMenu": false,
+                "showMarksOnScrollbar": false,
                 "startingDirectory": "%USERPROFILE%"
             }
         ]
     },
-    "schemes": 
-    [
+    "schemes": [
         {
             "background": "#23262E",
             "black": "#23262E",
