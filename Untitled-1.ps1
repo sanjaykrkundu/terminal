@@ -213,6 +213,9 @@ function prompt {
         if ($PromptModules.Admin -and $admin) {
             Write-Host ($admin + ' ') -NoNewline -ForegroundColor $C.Admin
         }
+        if ($BgJobs.Count -gt 0) {
+            Write-Host ("⚙ " + $BgJobs.Count) -NoNewline -ForegroundColor DarkCyan
+        }
         Write-Host ($SymArrow + ' ') -NoNewline -ForegroundColor $C.User
         return ' '
     }
@@ -278,18 +281,80 @@ function unzip {
 
 }
 
+function lll {
+    param(
+        [string]$Path = "."
+    )
+
+    Get-ChildItem -Path $Path -Force |
+        Sort-Object @{ Expression = { -not $_.PSIsContainer } }, Name |
+        Format-Table `
+            @{ Name = "Size"; Expression = {
+                if ($_.PSIsContainer) {
+                    "<DIR>"
+                }
+                else {
+                    $s = $_.Length
+                    if ($s -ge 1GB) { "{0:N2} GB" -f ($s / 1GB) }
+                    elseif ($s -ge 1MB) { "{0:N2} MB" -f ($s / 1MB) }
+                    elseif ($s -ge 1KB) { "{0:N2} KB" -f ($s / 1KB) }
+                    else { "$s B" }
+                }
+            }},
+            Name -AutoSize
+}
+
+
 function ff($name) {
     Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object {
         Write-Output "$($_.FullName)"
     }
 }
 
-function grep($regex, $dir) {
-    if ( $dir ) {
-        Get-ChildItem $dir | select-string $regex
+Remove-Item Alias:grep -ErrorAction SilentlyContinue
+
+function grepSearch {
+    param(
+        [Parameter(Position = 0)]
+        $regex,
+
+        [Parameter(Position = 1)]
+        $dir,
+
+        [Parameter(ValueFromRemainingArguments=$true)]
+        $args
+    )
+
+    Write-Output $args
+
+    $recurse = $false
+    if ($args -match '(^|\s)-?r(\s|$)') { $recurse = $true }
+
+    if ($dir) {
+        Get-ChildItem -Path $dir -Recurse:$recurse -File | Select-String $regex
         return
     }
-    $input | select-string $regex
+
+    $input | Select-String $regex
+}
+
+function moveWithCount {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
+
+    $items = Get-ChildItem $Source -Force -ErrorAction SilentlyContinue
+    if (-not $items) {
+        Write-Host 'mv: no matching files found' -ForegroundColor Yellow
+        return
+    }
+
+    $MovedItems = Move-Item -Path $Source -Destination $Destination -Force -PassThru
+    $count = ($MovedItems | Measure-Object).Count
+    Write-Host ($PSSpecialChar.Check + " " + $count.ToString() + ' item(s) moved ') -ForegroundColor Green
 }
 
 function df {
@@ -392,7 +457,6 @@ function theme-light { $global:PromptTheme = 'Light' }
 
 # ---------- ALIASES ----------
 Set-Alias ll Get-ChildItem
-Set-Alias grep Select-String
 Set-Alias touch New-Item
 
 # ---------- ALIASES for commands ----------
@@ -404,8 +468,282 @@ Set-Alias short compact-on
 Set-Alias long compact-off
 
 Set-Alias -Name sudo -Value admin
-
+Set-Alias -Name grep -Value grepSearch
+Set-Alias -Name mv -Value moveWithCount
 
 # ---------- STARTUP ----------
 Clear-Host
 Write-Host 'Welcome'$user -ForegroundColor DarkGreen
+
+
+function last {
+    Get-History |
+        Where-Object { $_.ExecutionStatus -eq 'Completed' } |
+        Select-Object -Last 1 |
+        Invoke-History
+}
+
+$global:Marks = @{}
+
+# function mark {
+#     param($name)
+#     $global:Marks[$name] = (Get-Location).Path
+# }
+
+# function jump {
+#     param($name)
+#     Set-Location $global:Marks[$name]
+# }
+
+# Register-EngineEvent PowerShell.OnIdle -Action {
+#     $cpu = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
+#     # if ($cpu -gt 85) {
+#         Write-Host "⚠ High CPU: $([int]$cpu)%" -ForegroundColor Red
+#     # }
+# }
+
+# Get-ChildItem "$PSScriptRoot\*.ps1" | ForEach-Object { . $_ }
+
+
+function start-day {
+    # open work
+    # ll
+    # git pull
+}
+
+function end-day {
+    # git status
+    # shutdown /s /t 600
+}
+
+# Register-EngineEvent PowerShell.OnIdle -Action {
+#     if ((Get-Date).Minute -eq 15) {
+#         Write-Host "⏰ Hour check" -ForegroundColor DarkGray
+#     }
+# } | Out-Null
+
+
+# ==============================
+# Background Jobs Dashboard
+# ==============================
+
+# $global:BgJobs = @{}
+
+# function Start-Bg {
+#     param(
+#         [string]$Name,
+#         [scriptblock]$Script
+#     )
+
+#     $job = Start-Job -ScriptBlock $Script
+#     $BgJobs[$job.Id] = @{
+#         Name  = $Name
+#         Start = Get-Date
+#         Job   = $job
+#     }
+
+#     Write-Host "▶ Started: $Name (Job $($job.Id))" -ForegroundColor Cyan
+# }
+
+# function Jobs {
+#     $now = Get-Date
+
+#     $BgJobs.GetEnumerator() | ForEach-Object {
+#         $info = $_.Value
+#         $job  = $info.Job
+#         $dur  = $now - $info.Start
+
+#         [PSCustomObject]@{
+#             Id     = $job.Id
+#             Name   = $info.Name
+#             State  = $job.State
+#             Time   = ("{0:mm\:ss}" -f $dur)
+#         }
+#     } | Format-Table -AutoSize
+# }
+
+# function Stop-Bg {
+#     param($Id)
+
+#     if ($BgJobs[$Id]) {
+#         Stop-Job $BgJobs[$Id].Job
+#         Remove-Job $BgJobs[$Id].Job
+#         $BgJobs.Remove($Id)
+#         Write-Host "■ Stopped Job $Id" -ForegroundColor Yellow
+#     }
+# }
+
+# Cleanup finished jobs automatically
+# Register-EngineEvent PowerShell.OnIdle -Action {
+#     foreach ($id in @($BgJobs.Keys)) {
+#         if ($BgJobs[$id].Job.State -in 'Completed','Failed','Stopped') {
+#             Receive-Job $BgJobs[$id].Job | Out-Null
+#             Remove-Job $BgJobs[$id].Job
+#             $BgJobs.Remove($id)
+#         }
+#     }
+# } | Out-Null
+
+
+# ==============================
+# Job Progress + Notifications
+# ==============================
+
+# function Show-JobProgress {
+#     while ($BgJobs.Count -gt 0) {
+#         foreach ($id in @($BgJobs.Keys)) {
+#             $info = $BgJobs[$id]
+#             $job  = $info.Job
+
+#             if ($job.State -eq 'Running') {
+
+#                 # Try native progress
+#                 $progress = Receive-Job -Id $job.Id -Keep -ErrorAction SilentlyContinue |
+#                             Where-Object { $_ -is [System.Management.Automation.ProgressRecord] }
+
+#                 if ($progress) {
+#                     foreach ($p in $progress) {
+#                         Write-Progress `
+#                             -Id $job.Id `
+#                             -Activity $info.Name `
+#                             -Status $p.StatusDescription `
+#                             -PercentComplete $p.PercentComplete
+#                     }
+#                 }
+#                 else {
+#                     # Fallback spinner
+#                     $elapsed = (Get-Date) - $info.Start
+#                     Write-Progress `
+#                         -Id $job.Id `
+#                         -Activity $info.Name `
+#                         -Status ("Running ({0:mm\:ss})" -f $elapsed) `
+#                         -PercentComplete (($elapsed.TotalSeconds % 60) * 1.6)
+#                 }
+#             }
+#         }
+
+#         Start-Sleep -Milliseconds 400
+#     }
+
+#     Write-Progress -Activity "Jobs" -Completed
+# }
+
+
+# ==============================
+# Windows Notifications
+# ==============================
+
+# function Notify {
+#     param(
+#         [string]$Title,
+#         [string]$Message,
+#         [ValidateSet("Info","Success","Error")]
+#         $Type = "Info",
+#         [switch]$Sound
+#     )
+
+#     Add-Type -AssemblyName System.Runtime.WindowsRuntime
+
+#     $xml = @"
+# <toast>
+#   <visual>
+#     <binding template="ToastGeneric">
+#       <text>$Title</text>
+#       <text>$Message</text>
+#     </binding>
+#   </visual>
+# </toast>
+# "@
+
+#     $toastXml = New-Object Windows.Data.Xml.Dom.XmlDocument
+#     $toastXml.LoadXml($xml)
+
+#     $toast = [Windows.UI.Notifications.ToastNotification]::new($toastXml)
+#     [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("PowerShell").Show($toast)
+
+#     if ($Sound) {
+#         [console]::beep(1000,200)
+#     }
+# }
+
+# Register-EngineEvent PowerShell.OnIdle -Action {
+#     foreach ($id in @($BgJobs.Keys)) {
+#         $job = $BgJobs[$id].Job
+
+#         if ($job.State -in 'Completed','Failed') {
+#             $name = $BgJobs[$id].Name
+#             $dur  = (Get-Date) - $BgJobs[$id].Start
+
+#             Receive-Job $job | Out-Null
+#             Remove-Job $job
+#             $BgJobs.Remove($id)
+
+#             if ($job.State -eq 'Completed') {
+#                 Notify "Job completed" "$name finished in $([int]$dur.TotalSeconds)s" -Type Success -Sound
+#             }
+#             else {
+#                 Notify "Job failed" "$name failed" -Type Error -Sound
+#             }
+#         }
+#     }
+# } | Out-Null
+
+# Start-Bg download {
+#     for ($i=0; $i -le 100; $i+=5) {
+#         Write-Progress -Activity "Downloading" -Status "$i%" -PercentComplete $i
+#         Start-Sleep -Milliseconds 300
+#     }
+# }
+
+$global:ProfileRoot = Split-Path $PROFILE
+
+function login {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Site
+    )
+    Add-Type -AssemblyName System.Windows.Forms
+
+    $configPath = Join-Path $ProfileRoot "sites.json"
+
+    if (-not (Test-Path $configPath)) {
+        throw "sites.json not found"
+    }
+
+    $sites = Get-Content $configPath -Raw | ConvertFrom-Json
+    $siteCfg = $sites.$Site
+    if (-not $siteCfg) {
+        throw "Site '$Site' not configured"
+    }
+
+    Write-Output "Logging in to " $siteCfg.url
+    $username = $siteCfg.username
+    $password = Read-Host "Enter password " -AsSecureString
+    $cred = New-Object System.Management.Automation.PSCredential ($username, $password)
+
+    Start-Process chrome $siteCfg.url # -PassThru
+
+    Start-Sleep -Seconds 3
+
+    Send-Tab $siteCfg.focusTabCount
+    [System.Windows.Forms.SendKeys]::SendWait("^a")
+    [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
+    [System.Windows.Forms.SendKeys]::SendWait($username)
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
+    [System.Windows.Forms.SendKeys]::SendWait("^a")
+    [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
+    [System.Windows.Forms.SendKeys]::SendWait($cred.GetNetworkCredential().Password)
+    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
+}
+
+function Send-Tab {
+    param(
+        [int]$Count,
+        [int]$DelayMs = 80
+    )
+
+    for ($i = 0; $i -lt $Count; $i++) {
+        [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
+        Start-Sleep -Milliseconds $DelayMs
+    }
+}
