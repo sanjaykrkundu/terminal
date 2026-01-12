@@ -4,6 +4,7 @@ Windows Terminal Guide:
 https://learn.microsoft.com/en-us/windows/terminal
 
 Oh My Posh Templates :
+https://ohmyposh.dev/docs/themes
 https://github.com/JanDeDobbeleer/oh-my-posh/blob/main/themes/amro.omp.json
 
 
