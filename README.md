@@ -18,7 +18,4 @@ Oh My Posh Templates :
 
     //example
     Write-Host "${cyan}Hello ${blue}World$reset" -NoNewline
-   
-`
-    
-
+```
