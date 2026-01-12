@@ -19,3 +19,19 @@ Oh My Posh Templates :
     //example
     Write-Host "${cyan}Hello ${blue}World$reset" -NoNewline
 ```
+```
+{
+  "git": {
+    "url": "https://github.com/login",
+    "username" : "xxxxx@gmail.com",
+    "loadDelay": 6,
+    "focusTabCount" : 0
+  },
+  "test": {
+    "url": "https://www.aaaaaaaaaaaaaa.com/login/",
+    "username" : "user",
+    "loadDelay": 8,
+    "focusTabCount" : 7
+  }
+}
+```
