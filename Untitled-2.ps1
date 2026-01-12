@@ -71,6 +71,54 @@ function moveWithCount {
     Write-Host ($PSSpecialChar.Check + " " + $count.ToString() + ' item(s) moved ') -ForegroundColor Green
 }
 
+function grepSearch {
+    param(
+        [Parameter(Position = 0)]
+        $regex,
+
+        [Parameter(Position = 1)]
+        $dir,
+
+        [Parameter(ValueFromRemainingArguments=$true)]
+        $args
+    )
+
+    Write-Output $args
+
+    $recurse = $false
+    if ($args -match '(^|\s)-?r(\s|$)') { $recurse = $true }
+
+    if ($dir) {
+        Get-ChildItem -Path $dir -Recurse:$recurse -File | Select-String $regex
+        return
+    }
+
+    $input | Select-String $regex
+}
+
+function lll {
+    param(
+        [string]$Path = "."
+    )
+
+    Get-ChildItem -Path $Path -Force |
+        Sort-Object @{ Expression = { -not $_.PSIsContainer } }, Name |
+        Format-Table `
+            @{ Name = "Size"; Expression = {
+                if ($_.PSIsContainer) {
+                    "<DIR>"
+                }
+                else {
+                    $s = $_.Length
+                    if ($s -ge 1GB) { "{0:N2} GB" -f ($s / 1GB) }
+                    elseif ($s -ge 1MB) { "{0:N2} MB" -f ($s / 1MB) }
+                    elseif ($s -ge 1KB) { "{0:N2} KB" -f ($s / 1KB) }
+                    else { "$s B" }
+                }
+            }},
+            Name -AutoSize
+}
+
 function grep($regex, $dir) {
     if ( $dir ) {
         Get-ChildItem $dir | select-string $regex
@@ -78,6 +126,22 @@ function grep($regex, $dir) {
     }
     $input | select-string $regex
 }
+
+# function prompt { "Hello".PadRight([Console]::WindowWidth - 5) + "World`n> " }
+
+# function prompt {
+#     $reset = "$([char]27)[0m"
+#     $esc = ([char]27)
+    
+#     $rgb = "${esc}[38;2;69;241;194m"
+#     $blue = "${esc}[38;2;23;3;252m"
+#     $cyan = "${esc}[38;2;69;241;194m"
+#     # "$([char]27)[${rgb}mHello$([char]27)[0m".PadRight([Console]::WindowWidth - 5) +  "$([char]27)[${rgb}mWorld$([char]27)[0m`n> "
+#     # Write-Host "> " -ForegroundColor $c
+
+
+#     Write-Host "${cyan}Hello ${blue}World$reset" -NoNewline
+# }
 
 
 Set-Alias -Name mv -Value moveWithCount
