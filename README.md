@@ -8,6 +8,7 @@ Oh My Posh Templates :
 - https://github.com/JanDeDobbeleer/oh-my-posh/blob/main/themes/amro.omp.json
 
 
+`
     $reset = "$([char]27)[0m"
     $esc = ([char]27)
     
@@ -17,9 +18,8 @@ Oh My Posh Templates :
 
     //example
     Write-Host "${cyan}Hello ${blue}World$reset" -NoNewline
-
     // <<escape char>>[<<foreground(38)|background(48)>>;<<color mode(2 - TRUE RGB 24bit | 5 - 256 color)>>;<<R>>;<<G>>;<<B>>;<<apply(m)|remove(0m)>>
-    
-
+   
+`
     
 
