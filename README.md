@@ -32,6 +32,19 @@ Oh My Posh Templates :
     "username" : "user",
     "loadDelay": 8,
     "focusTabCount" : 7
+  },
+ "gmail": {
+    "url": "https://accounts.google.com",
+    "username": "user@gmail.com",
+    "loadDelay": 8,
+    "steps": [
+      { "type": "wait", "ms": 3000 },
+      { "type": "tab", "count": 2 },
+      { "type": "text", "value": "{username}" },
+      { "type": "tab", "count": 1 },
+      { "type": "text", "value": "{password}" },
+      { "type": "key", "value": "{ENTER}" }
+    ]
   }
 }
 ```
