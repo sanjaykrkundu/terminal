@@ -12,6 +12,9 @@ https://learn.microsoft.com/en-us/windows/terminal
     $blue = "${esc}[38;2;23;3;252m"
     $cyan = "${esc}[38;2;69;241;194m"
 
+    //example
+    Write-Host "${cyan}Hello ${blue}World$reset" -NoNewline
+
     // <<escape char>>[<<foreground(38)|background(48)>>;<<color mode(2 - TRUE RGB 24bit | 5 - 256 color)>>;<<R>>;<<G>>;<<B>>;<<apply(m)|remove(0m)>>
     
 
