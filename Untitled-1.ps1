@@ -694,7 +694,6 @@ function end-day {
 #         Start-Sleep -Milliseconds 300
 #     }
 # }
-
 $global:ProfileRoot = Split-Path $PROFILE
 
 function login {
@@ -723,9 +722,18 @@ function login {
 
     Start-Process chrome $siteCfg.url # -PassThru
 
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds $siteCfg.loadDelay
 
-    Send-Tab $siteCfg.focusTabCount
+    if ($siteCfg.steps) {
+        $ctx = [pscustomobject]@{
+            username = $username
+            password = $cred.GetNetworkCredential().Password
+        }
+        Run-Steps -steps $siteCfg.steps -ctx $ctx
+        return
+    }
+
+    Send-Tab $siteCfg.tabCount
     [System.Windows.Forms.SendKeys]::SendWait("^a")
     [System.Windows.Forms.SendKeys]::SendWait("{DELETE}")
     [System.Windows.Forms.SendKeys]::SendWait($username)
@@ -746,4 +754,40 @@ function Send-Tab {
         [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
         Start-Sleep -Milliseconds $DelayMs
     }
+}
+
+
+function Run-Steps($steps, $ctx) {
+    foreach ($s in $steps) {
+        switch ($s.type) {
+            "wait" { Start-Sleep -Milliseconds $s.ms }
+            "tab"  {
+                for ($i=0; $i -lt $s.count; $i++) {
+                    [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
+                    Start-Sleep -Milliseconds 80
+                }
+            }
+            "text" {
+                $text = $s.value `
+                    -replace "\{username\}", $ctx.username `
+                    -replace "\{password\}", $ctx.password
+                [System.Windows.Forms.SendKeys]::SendWait($text)
+            }
+            "key" {
+                [System.Windows.Forms.SendKeys]::SendWait($s.value)
+            }
+        }
+    }
+}
+
+
+function Ensure-Foreground($proc, $timeoutSec = 5) {
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    while ($sw.Elapsed.TotalSeconds -lt $timeoutSec) {
+        if ($proc.MainWindowHandle -ne 0) {
+            return $true
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    throw "Window not ready"
 }
