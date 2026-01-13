@@ -2,8 +2,11 @@ $themeFolder = Join-Path -Path (Split-Path $PROFILE) -ChildPath "themes"
 # $themeFile = Join-Path -Path $themeFolder -ChildPath "amro.omp.json"
 # $themeFile = Join-Path -Path $themeFolder -ChildPath "agnoster.minimal.omp.json"
 # $themeFile = Join-Path -Path $themeFolder -ChildPath "agnosterplus.omp.json"
-# $themeFile = Join-Path -Path $themeFolder -ChildPath "1_shell.omp.json"
+$themeFile = Join-Path -Path $themeFolder -ChildPath "1_shell.omp.json"
 $themeFile = Join-Path -Path $themeFolder -ChildPath "multiverse-neon.omp.json"
+$themeFile = Join-Path -Path $themeFolder -ChildPath "nordtron.omp.json"
+
+
 
 # These functions is used for setup, then deleted below
 function Initialize-Theme {
@@ -47,7 +50,6 @@ function Get-AnsiColor {
         [int]$Layer
     )
     try {
-
         $cleanHex = $Hex.Trim('#')
         if ($cleanHex.length -eq 3) {
             $cleanHex = "$($cleanHex[0])$($cleanHex[0])$($cleanHex[1])$($cleanHex[1])$($cleanHex[2])$($cleanHex[2])"
@@ -56,6 +58,7 @@ function Get-AnsiColor {
         $r = [System.Convert]::ToInt32($cleanHex.Substring(0, 2), 16)
         $g = [System.Convert]::ToInt32($cleanHex.Substring(2, 2), 16)
         $b = [System.Convert]::ToInt32($cleanHex.Substring(4, 2), 16)
+
         return "$([char]27)[$($Layer);2;$r;$g;$($b)m"
     }
     catch {
@@ -170,7 +173,7 @@ function Theme-Segment-Builder {
         $foreground = Get-AnsiColor -Hex $segment.foreground -Layer 38
     }
 
-    $output = $segment.template
+    $output = $segment.template 
 
     switch ($segment.type) {
         # done
@@ -229,6 +232,8 @@ function Theme-Segment-Builder {
             $normalOutput += $symbolStart
         }
         $normalOutput += "$output"
+
+        $output = Intermediate-Color $foreground $background $output
         $coloredOutput += "$foreground$background$output$reset"
         if ($symbolEnd) {
             $normalOutput += $symbolEnd
@@ -243,6 +248,18 @@ function Theme-Segment-Builder {
     }
 }
 
+function Intermediate-Color {
+    param ($fg, $bg, $output)
+
+    $output = $output -replace '</>', "$reset$bg$fg"
+        $output = [regex]::Replace($output, '<#([A-Fa-f0-9]{6})>', {
+            param($m)
+            # Write-Host $m
+            $xx = Get-AnsiColor -Hex $m.Groups[1].Value -Layer 38
+            return "$reset$xx";
+        })
+    return $output
+}
 
 # --- Execute ---
 Clear-Host
