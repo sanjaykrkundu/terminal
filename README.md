@@ -48,3 +48,29 @@ Oh My Posh Templates :
   }
 }
 ```
+
+
+
+```
+# Get terminal width to calculate the right-side alignment
+$width = $Host.UI.RawUI.WindowSize.Width
+
+# ANSI Sequences
+$saveCursor    = "`e[s"
+$restoreCursor = "`e[u"
+$moveRight     = "`e[$($width)G"      # Move to the absolute column (terminal width)
+$moveLeft      = "`e[$($time.Length)D" # Move back by the length of the time string
+
+# The Logic:
+# 1. Write username
+# 2. Save position
+# 3. Move to the end, back up by the time length, print time
+# 4. Restore cursor
+
+# Write-Host -NoNewline "$user$saveCursor$moveRight$moveLeft$time$restoreCursor"
+# $userStyle = $PSStyle.Foreground.FromRgb(0, 255, 150) # Neon Green
+# $timeStyle = $PSStyle.Foreground.FromRgb(150, 150, 150) # Dim Gray
+
+# Write-Host -NoNewline "$userStyle$user$($PSStyle.Reset)$saveCursor$moveRight$moveLeft$timeStyle$time$($PSStyle.Reset)$restoreCursor"
+```
+
