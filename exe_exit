@@ -1,0 +1,43 @@
+# Place this in your $PROFILE
+$global:LastHistoryId = -1
+
+function prompt {
+    # 1. Capture the most recent history item
+    $lastHistory = Get-History -Count 1
+    
+    # 2. Logic: If there is a new command in history, calculate stats. 
+    # If the user just pressed Enter (ID hasn't changed), reset to 0.
+    if ($lastHistory -and $lastHistory.Id -ne $global:LastHistoryId) {
+        $global:LastHistoryId = $lastHistory.Id
+        $duration = $lastHistory.EndExecutionTime - $lastHistory.StartExecutionTime
+        $exitCode = $global:LASTEXITCODE
+    } else {
+        $duration = [TimeSpan]::Zero
+        $exitCode = 0
+    }
+
+    # 3. Format Execution Time
+    $durationStr = "0ms"
+    if ($duration.TotalMilliseconds -gt 150) {
+        if ($duration.TotalSeconds -ge 1) {
+            $durationStr = ('{0:N1}s' -f $duration.TotalSeconds)
+        } else {
+            $durationStr = ([int]$duration.TotalMilliseconds).ToString() + 'ms'
+        }
+    }
+
+    # 4. Format Exit Status
+    $exitStr = if ($exitCode -ne 0 -and $null -ne $exitCode) { "exit:$exitCode" } else { "0" }
+
+    # 5. Render to Console
+    # Using specific colors for high scannability
+    Write-Host "EXE : " -NoNewline -ForegroundColor DarkGray
+    Write-Host "$durationStr " -NoNewline -ForegroundColor Cyan
+    
+    Write-Host "EXIT : " -NoNewline -ForegroundColor DarkGray
+    $exitColor = if ($exitCode -eq 0) { "Green" } else { "Red" }
+    Write-Host "$exitStr" -ForegroundColor $exitColor
+    
+    # Standard Prompt suffix
+    return "PS $($ExecutionContext.SessionState.Path.CurrentLocation)> "
+}
