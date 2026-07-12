@@ -144,4 +144,52 @@ function grep($regex, $dir) {
 # }
 
 
+function xx {
+   Get-ChildItem | ForEach-Object {
+    # 1. Determine the Nerd Font icon and color
+    if ($_.PSIsContainer) {
+        $icon = " "  # Folder icon
+        $color = "Cyan"
+    } else {
+        $icon = switch ($_.Extension.ToLower()) {
+            '.md'   { "\ue73e" }
+            '.xlsx' { "\udb84\udf8f" }
+            '.docx' { "\ue6a5" }
+            '.pdf'  { "\ueaeb" }
+            '.cpp'  { "\ue61d" }
+            '.cpp'  { "\ue61d" }
+            '.c'    { "\ue61e" }
+            '.h'    { "\udb83\udc00" }
+            '.py'   { "\ue73c" }
+            '.js'   { "\uf2ef" }
+            '.html' { "\ue736" }
+            '.css'  { "\ue749" }
+            '.txt'  { "\uf15c" }
+            '.ps1'  { "\udb82\ude0a" }
+            '.zip'  { "\udb81\udeeb" }
+            '.exe'  { "󰆍 " }
+            default { "󰈔 " } # Default file icon
+        }
+        $color = "White"
+    }
+
+    # 2. Construct the precise ANSI Hyperlink escape sequence
+    $esc = [char]27
+    $uri = "file:///$($_.FullName -replace '\\', '/')"
+    
+    # Opening sequence + URI + Closing of opening sequence
+    $linkStart = "${esc}]8;;$uri${esc}\"
+    # The actual closing sequence to stop the hyperlink cleanly
+    $linkEnd   = "${esc}]8;;${esc}\"
+
+    # 3. Output the icon normally, and wrap only the text in the hyperlink
+    Write-Host "$icon " -NoNewline
+    Write-Host "${linkStart}$($_.Name)${linkEnd}" -ForegroundColor $color
+}
+    
+}
+
+
+
+
 Set-Alias -Name mv -Value moveWithCount
