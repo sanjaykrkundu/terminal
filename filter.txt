@@ -1,0 +1,68 @@
+# ------------------------------------------------------------------------------
+# FORMAT
+#
+# ACTION | MODE | TAG | STRING | COLOR | ENABLED
+#
+# ACTION
+#   MATCH
+#   REMOVE
+#
+# MODE
+#   TAG      -> Match only tag
+#   STRING   -> Match only message
+#   AND      -> Tag AND message
+#   OR       -> Tag OR message
+#
+# COLOR
+#   Any PowerShell ConsoleColor
+#
+# ENABLED
+#   1 = Enabled
+#   0 = Disabled
+# ------------------------------------------------------------------------------
+
+# Camera tags
+MATCH|TAG|CameraService||Green|1
+MATCH|TAG|ISP||Cyan|1
+MATCH|TAG|CamHAL||Yellow|1
+
+# Message only
+MATCH|STRING||ERROR|Red|1
+MATCH|STRING||WARNING|DarkYellow|1
+MATCH|STRING||fps|Magenta|1
+MATCH|STRING||open|Blue|1
+
+# Tag AND String
+MATCH|AND|CameraService|open|Green|1
+MATCH|AND|ISP|fps|Magenta|1
+MATCH|AND|CamHAL|ERROR|Red|1
+
+# Tag OR String
+MATCH|OR|CameraService|timeout|Yellow|1
+MATCH|OR|ISP|sensor|Cyan|1
+
+# Ignore noisy tags
+REMOVE|TAG|SurfaceFlinger|||1
+REMOVE|TAG|BufferQueueProducer|||1
+
+# Ignore noisy strings
+REMOVE|STRING||binder transaction||1
+REMOVE|STRING||Skipped 120 frames||1
+
+# Ignore only when BOTH match
+REMOVE|AND|CameraService|heartbeat||1
+
+# Ignore when either matches
+REMOVE|OR|AudioFlinger|underrun||1
+
+
+
+MATCH|REGEX||Camera.*ERROR|Red|1
+
+MATCH|PID|2456||Green|1
+
+MATCH|UID|1000||Cyan|1
+
+MATCH|PACKAGE|com.android.camera||Yellow|1
+
+MATCH|PROCESS|cameraserver||Magenta|1
